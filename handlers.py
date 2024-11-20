@@ -10,20 +10,6 @@ from aiogram.fsm.context import FSMContext
 from saving import save
 from main import dp
 
-# Регистрация всех обработчиков
-def register_handlers(disp: dp):
-    disp.message.register(cmd_start, Command("start"))
-    disp.message.register(command_p, F.text == "Посмотреть MCC")
-    disp.message.register(cmd_p, Command("p"))
-    disp.callback_query.register(subj_1, F.data == 'transport')
-    disp.callback_query.register(subj_2, F.data == 'fast_food')
-    disp.callback_query.register(subj_3, F.data == 'photo_video')
-    disp.callback_query.register(subj_4, F.data == 'flowers')
-    disp.callback_query.register(subj_5, F.data == 'duty_free')
-    disp.message.register(command_s, F.text == "Сделать запрос")
-    disp.message.register(cmd_s, Command("s"))
-    disp.message.register(process, Form.waiting_for_input)
-
 # Обработчик команды /start
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
@@ -118,3 +104,19 @@ async def process(message: Message, state: FSMContext):
     save(data_list)
     doc = FSInputFile("result_mcc.xlsx")
     await message.reply_document(doc)
+
+'''---------------------------------------------------------------------------------------------------------------------------------------------'''
+
+# Регистрация всех обработчиков
+def register_handlers(disp: dp):
+    disp.message.register(cmd_start, Command("start"))
+    disp.message.register(command_p, F.text == "Посмотреть MCC")
+    disp.message.register(cmd_p, Command("p"))
+    disp.callback_query.register(subj_1, F.data == 'transport')
+    disp.callback_query.register(subj_2, F.data == 'fast_food')
+    disp.callback_query.register(subj_3, F.data == 'photo_video')
+    disp.callback_query.register(subj_4, F.data == 'flowers')
+    disp.callback_query.register(subj_5, F.data == 'duty_free')
+    disp.message.register(command_s, F.text == "Сделать запрос")
+    disp.message.register(cmd_s, Command("s"))
+    disp.message.register(process, Form.waiting_for_input)

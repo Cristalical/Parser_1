@@ -25,7 +25,7 @@ def save(lst):
     c.value = "MCC"
     c1.value = "Название точки"
     c2.value = "Адрес оплаты"
-    c3.value = "Актуалы"
+    c3.value = "Актуалы/ссылки"
 
     i = 2  # Начинаем с второй строки, так как первая строка - заголовки
     for row_data in lst:
@@ -37,7 +37,7 @@ def save(lst):
         c.value = int(row_data[0])
         c1.value = row_data[1]
         c2.value = row_data[2]
-        c3.value = row_data[3][:10]
+        c3.value = row_data[3][:10] if row_data[3][:7] != 'http://' else row_data[3]
         i += 1
 
     # Сохранение данных в таблицу Excel

@@ -12,7 +12,7 @@ import handlers
 logging.basicConfig(level=logging.INFO)
 
 # Инициализация бота
-bot = Bot(token="8124940732:AAHq9s8__mKQ5egnH1R7S7ztEKriK2g0F1U", default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token="7645921921:AAGeyruHdvJOrenHp6CG06hyycvbpwjMTnY", default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=MemoryStorage())
 
 # Запуск бота

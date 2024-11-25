@@ -8,7 +8,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
 from saving import save
-from main import dp
+from main import dp, bot
 
 # Обработчик команды /start
 @dp.message(Command("start"))
@@ -84,26 +84,84 @@ async def cmd_s(message: Message, state: FSMContext):
     await message.answer('Введите ваш запрос:')
     await state.set_state(Form.waiting_for_input)
 
-# Обработчик ввода пользователя
+# Функция для извлечения ссылок из span элементов
+def extract_links(span_elements):
+    links = []
+    for span in span_elements:
+        a_tags = span.find_all('a')
+        for a_tag in a_tags:
+            href = a_tag.get('href')
+            if href:
+                links.append(href)
+    return links
+
+# Обработчик ввода пользователя (парсинг)
 @dp.message(Form.waiting_for_input)
 async def process(message: Message, state: FSMContext):
     user_input = message.text
     await state.clear()
-    url_1 = "https://mcc-codes.ru/search/?q="
-    req = user_input
-    url_1 += req
+
+    # Создание состояния
+    await bot.send_chat_action(chat_id=message.chat.id, action="upload_document")
+
+    # Формирование URL для запросов
+    url_1 = f"https://mcc-codes.ru/search/?q={user_input}"
+    url_2 = f"https://mcc-cod.ru/result-search-mcc.html?search={user_input}"
+
+    # Запросы к сайтам
     response_1 = requests.get(url_1)
+    response_2 = requests.get(url_2)
+
+    # Парсинг данных с первого сайта
     soup_1 = BeautifulSoup(response_1.text, 'lxml')
-    rows_1 = soup_1.find_all('tr')
+    data_list_1 = parse_mcc_codes_ru(soup_1)
+
+    # Парсинг данных со второго сайта
+    soup_2 = BeautifulSoup(response_2.text, 'lxml')
+    data_list_2 = parse_mcc_cod_ru(soup_2)
+
+    # Объединение данных
+    data_list = data_list_1 + data_list_2
+
+    # Сохранение данных и отправка файла пользователю
+    save(data_list)
+    doc = FSInputFile("result_mcc.xlsx")
+    await message.reply_document(doc)
+
+# Парсинг данных с сайта mcc-codes.ru
+def parse_mcc_codes_ru(soup):
     data_list = []
-    for row in rows_1:
+    rows = soup.find_all('tr')
+    for row in rows:
         if 'td' in str(row):
             cells = row.find_all('td')
             row_data = [cell.get_text(strip=True) for cell in cells]
             data_list.append(row_data)
-    save(data_list)
-    doc = FSInputFile("result_mcc.xlsx")
-    await message.reply_document(doc)
+    return data_list
+
+# Парсинг данных с сайта mcc-cod.ru
+def parse_mcc_cod_ru(soup):
+    data_list = []
+    paging_div = soup.find_all('span', class_='simplesearch-page')
+    links = extract_links(paging_div)
+    links.insert(0, 'result-search-mcc.html?search=4111&simplesearch_offset=00')
+
+    for link in links:
+        url = f'https://mcc-cod.ru/{link}'
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'lxml')
+        rows = soup.find_all('tr')
+        for row in rows:
+            if 'td' in str(row):
+                cells = row.find_all('td')
+                mcc_code = cells[3].find('a').text
+                name = cells[0].find('a').text
+                address = cells[1].text
+                link = cells[2].find('a')['href']
+                row_data = [mcc_code, name, address, link if link != 'http://' else '']
+                data_list.append(row_data)
+    return data_list
+
 
 '''---------------------------------------------------------------------------------------------------------------------------------------------'''
 

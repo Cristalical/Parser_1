@@ -118,7 +118,7 @@ async def process(message: Message, state: FSMContext):
 
     # Парсинг данных со второго сайта
     soup_2 = BeautifulSoup(response_2.text, 'lxml')
-    data_list_2 = parse_mcc_cod_ru(soup_2)
+    data_list_2 = parse_mcc_cod_ru(soup_2, user_input)
 
     # Объединение данных
     data_list = data_list_1 + data_list_2
@@ -140,11 +140,11 @@ def parse_mcc_codes_ru(soup):
     return data_list
 
 # Парсинг данных с сайта mcc-cod.ru
-def parse_mcc_cod_ru(soup):
+def parse_mcc_cod_ru(soup, user_input):
     data_list = []
     paging_div = soup.find_all('span', class_='simplesearch-page')
     links = extract_links(paging_div)
-    links.insert(0, 'result-search-mcc.html?search=4111&simplesearch_offset=00')
+    links.insert(0, f'result-search-mcc.html?search={user_input}&simplesearch_offset=00')
 
     for link in links:
         url = f'https://mcc-cod.ru/{link}'
